@@ -49,7 +49,7 @@ class UpdateCarModel(BaseModel):
 
     brand: Optional[str] = Field(...)
     make: Optional[str] = Field(...)
-    year: Optional[str] = Field(..., gt=1970, lt=2025)
+    year: Optional[int] = Field(..., gt=1970, lt=2025)
     cm3: Optional[int] = Field(..., gt=0, lt=5000)
     km: Optional[int] = Field(..., gt=0, lt=500 * 1000)
     price: Optional[int] = Field(..., gt=0, lt=100 * 1000)
