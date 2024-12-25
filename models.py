@@ -39,11 +39,6 @@ class CarModel(BaseModel):
         }
     )
 
-# test_car = CarModel(
-#     brand="ford", make="fiesta", year=2019, cm3=1500, km=120000, price=10000
-# )
-
-# print(test_car.model_dump())
 
 class UpdateCarModel(BaseModel):
 
@@ -69,5 +64,11 @@ class UpdateCarModel(BaseModel):
         },
     )
 
+
 class CarCollection(BaseModel):
     cars: List[CarModel]
+
+
+class CarCollectionPagination(CarCollection):
+    page: int = Field(ge=1, default=1)
+    has_more: bool

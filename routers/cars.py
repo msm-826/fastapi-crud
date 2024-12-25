@@ -1,10 +1,11 @@
 from fastapi import APIRouter, Body, Request, Response, Depends, status, HTTPException
-from models import CarModel, CarCollection, UpdateCarModel
+from models import CarModel, CarCollection, UpdateCarModel, CarCollectionPagination
 from pymongo import ReturnDocument
 from bson import ObjectId
 
 router = APIRouter()
 
+CARS_PER_PAGE = 10
 
 @router.post("/", response_description="Add new car", response_model=CarModel, status_code=status.HTTP_201_CREATED, response_model_by_alias=False)
 async def add_car(request: Request, car: CarModel = Body(...)):
@@ -17,15 +18,29 @@ async def add_car(request: Request, car: CarModel = Body(...)):
     return await cars.find_one({"_id": inserted.inserted_id})
 
 
-@router.get("/", response_description="List all cars", response_model=CarCollection, response_model_by_alias=False)
-async def list_cars(request: Request):
+# @router.get("/", response_description="List all cars", response_model=CarCollection, response_model_by_alias=False)
+# async def list_cars(request: Request):
+#     cars = request.app.db["cars"]
+#     results = []
+#     cursor = cars.find()
+#     async for document in cursor:
+#         results.append(document)
+
+#     return CarCollection(cars=results)
+
+@router.get("/", response_description="List all cars, paginated", response_model=CarCollectionPagination, response_model_by_alias=False)
+async def list_cars(request: Request, page: int = 1, limit: int = CARS_PER_PAGE):
     cars = request.app.db["cars"]
     results = []
-    cursor = cars.find()
+    cursor = cars.find().sort("companyName").limit(limit).skip((page - 1) * limit)
+
+    total_documents = await cars.count_documents({})
+    has_more = total_documents > limit * page
+    
     async for document in cursor:
         results.append(document)
-
-    return CarCollection(cars=results)
+    
+    return CarCollectionPagination(cars=results, page=page, has_more=has_more)
 
 
 @router.get("/{id}", response_description="Get a single car by ID", response_model=CarModel, response_model_by_alias=False)
